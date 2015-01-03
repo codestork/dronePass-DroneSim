@@ -1,10 +1,11 @@
-var LineStep = require('./utils/lineStep');
+var turf = require('turf');
+var droneSim = require('./droneSim');
 
-var ls1 = LineStep([ [1,3],
-                     [5,7],
-                     [10,-19],
-                         ] );
+var drone1 = droneSim.makeDrone();
+drone1.takeOff();
+drone1.fly();
 
-console.log(ls1.step(1.5));
-console.log(ls1.step(2));
-console.log(ls1.step(3));
+ setTimeout(function(){
+   // drone1.stop.apply(drone1);
+   drone1.changeRoute.call(drone1, 1,[[-5,-5],[-8,-8]]);
+ },2000)

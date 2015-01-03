@@ -1,7 +1,6 @@
 /**
- * A module that exports a single function (`interpolateLineDistance()`), which
- * interpolates the coordinates of any number of equidistant points along the
- * length of a potentially multi-segment line.
+ * LineStep interpolates the coordinates 
+ * along the length of a potentially multi-segment line.
  *
  * Note: this module's function documentation frequently refers to a `Point`
  * object, which is simply an array of two numbers (the x- and y- coordinates).
@@ -32,7 +31,9 @@ var distance = function( pt1, pt2 ){
 
 var LineStep = function( ctrlPoints ) {
   var newObj = {};
-  var currPoint = newObj.currPoint = ctrlPoints[ 0 ];
+  newObj.currPoint = ctrlPoints[ 0 ];
+  newObj.prevCtrlPtInd = 0;
+  newObj.currDist = 0;
 
   newObj.step = function( step ){
 
@@ -49,44 +50,42 @@ var LineStep = function( ctrlPoints ) {
 
     // Variables used to control interpolation.
     var interpPoints = [ ctrlPoints[ 0 ] ];
-    var prevCtrlPtInd = 0;
-    var currDist = 0;
+    
+
     var nextDist = 0;
 
     return function( step ) {
       nextDist += step;
 
       // Find the segment in which the next interpolated point lies.
-      while( nextDist > ctrlPtDists[ prevCtrlPtInd + 1 ] ){
-        prevCtrlPtInd++;
-        currDist = ctrlPtDists[ prevCtrlPtInd ];
-        currPoint = ctrlPoints[ prevCtrlPtInd ];
+      while( nextDist > ctrlPtDists[ newObj.prevCtrlPtInd + 1 ] ){
+        newObj.prevCtrlPtInd++;
+        newObj.currDist = ctrlPtDists[ newObj.prevCtrlPtInd ];
+        newObj.currPoint = ctrlPoints[ newObj.prevCtrlPtInd ];
       }
 
-      console.log('yo:', ctrlPoints[prevCtrlPtInd]);
-
-      if ( prevCtrlPtInd === ctrlPoints.length - 1 ) {
-        return currPoint;
+      if ( newObj.prevCtrlPtInd === ctrlPoints.length - 1 ) {
+        return newObj.current = newObj.currPoint;
       }
 
       // Interpolate the coordinates of the next point along the current segment.
-      var remainingDist = nextDist - currDist;
-      var ctrlPtsDeltaX = ctrlPoints[ prevCtrlPtInd + 1 ][ 0 ] -
-        ctrlPoints[ prevCtrlPtInd ][ 0 ];
-      var ctrlPtsDeltaY = ctrlPoints[ prevCtrlPtInd + 1 ][ 1 ] -
-        ctrlPoints[ prevCtrlPtInd ][ 1 ];
-      var ctrlPtsDist = ctrlPtDists[ prevCtrlPtInd + 1 ] -
-        ctrlPtDists[ prevCtrlPtInd ];
+      var remainingDist = nextDist - newObj.currDist;
+      var ctrlPtsDeltaX = ctrlPoints[ newObj.prevCtrlPtInd + 1 ][ 0 ] -
+        ctrlPoints[ newObj.prevCtrlPtInd ][ 0 ];
+      var ctrlPtsDeltaY = ctrlPoints[ newObj.prevCtrlPtInd + 1 ][ 1 ] -
+        ctrlPoints[ newObj.prevCtrlPtInd ][ 1 ];
+      var ctrlPtsDist = ctrlPtDists[ newObj.prevCtrlPtInd + 1 ] -
+        ctrlPtDists[ newObj.prevCtrlPtInd ];
       var distRatio = remainingDist / ctrlPtsDist;
 
-      currPoint = [
-        currPoint[ 0 ] + ctrlPtsDeltaX * distRatio,
-        currPoint[ 1 ] + ctrlPtsDeltaY * distRatio
+      newObj.currPoint = [
+        newObj.currPoint[ 0 ] + ctrlPtsDeltaX * distRatio,
+        newObj.currPoint[ 1 ] + ctrlPtsDeltaY * distRatio
       ];
 
-      currDist = nextDist;
+      newObj.currDist = nextDist;
 
-      return currPoint;
+      return newObj.current = newObj.currPoint;
     }
 
     
