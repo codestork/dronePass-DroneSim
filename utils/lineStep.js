@@ -1,7 +1,6 @@
 /**
- * A module that exports a single function (`interpolateLineDistance()`), which
- * interpolates the coordinates of any number of equidistant points along the
- * length of a potentially multi-segment line.
+ * LineStep interpolates the coordinates 
+ * along the length of a potentially multi-segment line.
  *
  * Note: this module's function documentation frequently refers to a `Point`
  * object, which is simply an array of two numbers (the x- and y- coordinates).
@@ -32,7 +31,7 @@ var distance = function( pt1, pt2 ){
 
 var LineStep = function( ctrlPoints ) {
   var newObj = {};
-  var currPoint = newObj.currPoint = ctrlPoints[ 0 ];
+  newObj.current = ctrlPoints[ 0 ];
 
   newObj.step = function( step ){
 
@@ -49,6 +48,7 @@ var LineStep = function( ctrlPoints ) {
 
     // Variables used to control interpolation.
     var interpPoints = [ ctrlPoints[ 0 ] ];
+    var currPoint = newObj.current;
     var prevCtrlPtInd = 0;
     var currDist = 0;
     var nextDist = 0;
@@ -63,10 +63,8 @@ var LineStep = function( ctrlPoints ) {
         currPoint = ctrlPoints[ prevCtrlPtInd ];
       }
 
-      console.log('yo:', ctrlPoints[prevCtrlPtInd]);
-
       if ( prevCtrlPtInd === ctrlPoints.length - 1 ) {
-        return currPoint;
+        return newObj.current = currPoint;
       }
 
       // Interpolate the coordinates of the next point along the current segment.
@@ -86,7 +84,7 @@ var LineStep = function( ctrlPoints ) {
 
       currDist = nextDist;
 
-      return currPoint;
+      return newObj.current = currPoint;
     }
 
     
