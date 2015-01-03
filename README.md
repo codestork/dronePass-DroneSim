@@ -1,2 +1,2 @@
-dronePass-DroneSim
+Game of Drones
 ==================
