@@ -53,12 +53,28 @@
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> turf = <span class="hljs-built_in">require</span>(<span class="hljs-string">'turf'</span>);
 <span class="hljs-keyword">var</span> droneSim = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./droneSim'</span>);
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">var</span> Random = <span class="hljs-built_in">require</span>(<span class="hljs-string">"random-js"</span>)();
 
-<span class="hljs-keyword">var</span> drone1 = droneSim.makeDrone();
-drone1.takeOff();
-drone1.fly();
 
- setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{</pre></div></div>
+<span class="hljs-keyword">var</span> drone1 = droneSim.makeDrone(<span class="hljs-string">'Mike-Lima-November-9-1-7'</span>);
+
+ setInterval(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-built_in">console</span>.log(drone1.getCurrentState());
+  }, <span class="hljs-number">1000</span>);
+
+<span class="hljs-keyword">var</span> rndWords = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">var</span> len = <span class="hljs-built_in">arguments</span>.length;
+  <span class="hljs-keyword">var</span> ind = Random.integer(<span class="hljs-number">0</span>,len-<span class="hljs-number">1</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">arguments</span>[ind];
+}
+
+<span class="hljs-keyword">var</span> io = <span class="hljs-built_in">require</span>(<span class="hljs-string">'socket.io'</span>)(<span class="hljs-number">8080</span>);
+
+io
+  .on(<span class="hljs-string">'connection'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(socket)</span> </span>{
+
+    socket.on(<span class="hljs-string">'reportIn'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{</pre></div></div>
             
         </li>
         
@@ -69,12 +85,134 @@ drone1.fly();
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>drone1.stop.apply(drone1);</p>
+              <p>example -&gt; { location: [ 2.05, 12.14 ], prevPathPtInd: 0, distance: 8.999 }</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>   drone1.changeRoute.call(drone1, <span class="hljs-number">1</span>,[[-<span class="hljs-number">5</span>,-<span class="hljs-number">5</span>],[-<span class="hljs-number">8</span>,-<span class="hljs-number">8</span>]]);
- },<span class="hljs-number">2000</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+      report.transcript = drone1.callSign + 
+                          <span class="hljs-string">" loc "</span> + report.location[<span class="hljs-number">0</span>] + <span class="hljs-string">", "</span> + report.location[<span class="hljs-number">1</span>] + <span class="hljs-string">" . "</span> +
+                          <span class="hljs-string">"PPI "</span> + report.prevPathPtInd + <span class="hljs-string">" . "</span> +
+                          <span class="hljs-string">"distance "</span> + report.distance + 
+                          rndWords(<span class="hljs-string">' from base.'</span>, <span class="hljs-string">" from home."</span>, <span class="hljs-string">""</span>);
+
+      socket.emit(<span class="hljs-string">'update'</span>, report);
+    });
+
+    socket.on(<span class="hljs-string">'takeOff'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{
+      <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+
+      <span class="hljs-keyword">if</span> ( drone1.isFlying ) {
+        report.transcript = drone1.callSign + <span class="hljs-string">' copy.'</span> +
+                            <span class="hljs-string">' we were flying, will keep going'</span>;
+      } <span class="hljs-keyword">else</span> {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign + <span class="hljs-string">' taking off,'</span>+ 
+                            rndWords(<span class="hljs-string">' confirm.'</span>, <span class="hljs-string">' good day.'</span>, <span class="hljs-string">' good flight.'</span>);
+        drone1.takeOff();
+        drone1.fly();
+      }
+
+      socket.emit(<span class="hljs-string">'ack'</span>, report);
+    });
+
+    socket.on(<span class="hljs-string">'setSpeed'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{
+      <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+
+      <span class="hljs-keyword">if</span> ( msg.newSpeed === <span class="hljs-number">0</span> ) {
+
+      }
+
+      <span class="hljs-keyword">if</span> ( !drone1.isFlying ) {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">', we were idle.'</span>) +
+                            rndWords(<span class="hljs-string">' waiting for new instruction'</span>);
+      } <span class="hljs-keyword">else</span> {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">' acknowledged,'</span>, <span class="hljs-string">' copy,'</span>, <span class="hljs-string">' understood,'</span>) +
+                            rndWords(<span class="hljs-string">' maintaining'</span>, <span class="hljs-string">' changing to'</span>, <span class="hljs-string">' in'</span>) +
+                            <span class="hljs-string">" speed "</span> + msg.newSpeed + <span class="hljs-string">' .'</span>;
+        drone1.setSpeed(msg.newSpeed);
+      }
+
+      socket.emit(<span class="hljs-string">'ack'</span>, report);
+    });
+
+    socket.on(<span class="hljs-string">'fly'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{
+      <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+      <span class="hljs-keyword">if</span> ( drone1.isFlying ) {
+        report.transcript = drone1.callSign + <span class="hljs-string">' copy.'</span> +
+                                    <span class="hljs-string">' we were flying, will keep going'</span>;
+      } 
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( !drone1.isFlying &amp;&amp; !drone1.takenOff ) {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">' at ground '</span>, <span class="hljs-string">''</span>) +
+                            rndWords(<span class="hljs-string">', need clearance for'</span>, <span class="hljs-string">', waiting for'</span>) +
+                            <span class="hljs-string">" taking off"</span>;
+      }
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( !drone1.isFlying &amp;&amp; drone1.takenOff ) {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">' acknowledged,'</span>, <span class="hljs-string">' copy,'</span>, <span class="hljs-string">' understood,'</span>) +
+                            rndWords(<span class="hljs-string">' fly ahead'</span>, <span class="hljs-string">' head straight'</span>, <span class="hljs-string">' going'</span>);
+        drone1.fly();
+      }
+
+      socket.emit(<span class="hljs-string">'ack'</span>, report);
+      
+    });
+
+    socket.on(<span class="hljs-string">'stop'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{
+      <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+
+      <span class="hljs-keyword">if</span> ( !drone1.isFlying &amp;&amp; !drone1.takenOff ) {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">' at stand,'</span>, <span class="hljs-string">' copy,'</span>) +
+                            rndWords(<span class="hljs-string">' we were holding'</span>, <span class="hljs-string">' keeping idle'</span>) +
+                            <span class="hljs-string">" at ground"</span>;
+      }
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( !drone1.isFlying &amp;&amp; drone1.takenOff ) {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">' at stand,'</span>, <span class="hljs-string">' copy,'</span>) +
+                            rndWords(<span class="hljs-string">' we were stopping'</span>, <span class="hljs-string">' keeping idle'</span>) +
+                            <span class="hljs-string">" in sky"</span>;
+      } <span class="hljs-keyword">else</span> {
+        report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                            rndWords(<span class="hljs-string">' at stand,'</span>, <span class="hljs-string">' copy,'</span>, <span class="hljs-string">' understood,'</span>) +
+                            rndWords(<span class="hljs-string">' stopping now'</span>, <span class="hljs-string">' pausing around'</span>, <span class="hljs-string">' idle now'</span>) +
+                            <span class="hljs-string">" in sky"</span>;
+      }
+
+      drone1.stop();
+      socket.emit(<span class="hljs-string">'ack'</span>, report);
+    });
+
+  socket.on(<span class="hljs-string">'land'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{
+    <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+
+    <span class="hljs-keyword">if</span> ( !drone1.takenOff ) {
+      report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                          rndWords(<span class="hljs-string">' at stand,'</span>, <span class="hljs-string">' copy,'</span>) +
+                          rndWords(<span class="hljs-string">' we were holding'</span>, <span class="hljs-string">' keeping idle'</span>) +
+                          <span class="hljs-string">" at ground"</span>;
+    } <span class="hljs-keyword">else</span> {
+      report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                          rndWords(<span class="hljs-string">' at stand,'</span>, <span class="hljs-string">' copy,'</span>, <span class="hljs-string">' understood,'</span>) +
+                          rndWords(<span class="hljs-string">' landing now'</span>, <span class="hljs-string">' going down'</span> );
+    }
+
+    drone1.stop();
+    drone1.land();
+    socket.emit(<span class="hljs-string">'ack'</span>, report);
+  });
+
+    socket.on(<span class="hljs-string">'changeRoute'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> </span>{
+      <span class="hljs-keyword">var</span> report = drone1.getCurrentState();
+      report.transcript = rndWords(<span class="hljs-string">'this is '</span>, <span class="hljs-string">''</span>) + drone1.callSign +
+                          rndWords(<span class="hljs-string">' reporting in,'</span>, <span class="hljs-string">' copy,'</span>, <span class="hljs-string">' pivoting,'</span>) +
+                          rndWords(<span class="hljs-string">' new path received'</span>, <span class="hljs-string">' following new path'</span>, <span class="hljs-string">' incoming new plan accepted'</span>);
+      drone1.changeRoute( msg.pivotPointInd, msg.substitutePath );
+      socket.emit(<span class="hljs-string">'ack'</span>, report);
+    });
+  });</pre></div></div>
             
         </li>
         
