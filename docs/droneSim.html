@@ -86,15 +86,16 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> drone = {};
+
     drone.callSign = callSign || <span class="hljs-string">"VX-seven oh two"</span>;
     path = path || 
             [
-              [-<span class="hljs-number">122.251911</span>, <span class="hljs-number">37.866316</span>],
-              [-<span class="hljs-number">122.25500106811523</span>, <span class="hljs-number">37.86401247373357</span>],
-              [-<span class="hljs-number">122.2723388671875</span>, <span class="hljs-number">37.86347038587407</span>],
-              [-<span class="hljs-number">122.271137</span>,<span class="hljs-number">37.854356</span>],
-              [-<span class="hljs-number">122.28667259216309</span>,<span class="hljs-number">37.852119505594274</span>],
-              [-<span class="hljs-number">122.27993488311768</span>,<span class="hljs-number">37.83103950459009</span>],
+              [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>],
+              [<span class="hljs-number">123</span>, <span class="hljs-number">80</span>],
+              [<span class="hljs-number">304</span>, <span class="hljs-number">130</span>],
+              [<span class="hljs-number">596</span>, <span class="hljs-number">339</span>],
+              [<span class="hljs-number">802</span>, <span class="hljs-number">489</span>],
+              [<span class="hljs-number">1034</span>, <span class="hljs-number">829</span>]
             ];</pre></div></div>
             
         </li>
@@ -110,9 +111,7 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    drone.speed = drone.speed || <span class="hljs-number">0.0001</span>;
-
-    <span class="hljs-keyword">var</span> ls = LineStep(path);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    drone.speed = drone.speed || <span class="hljs-number">3</span>;</pre></div></div>
             
         </li>
         
@@ -123,11 +122,11 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>if <code>takenOff</code> is <code>false</code> means the drone was landed</p>
+              <p>Utility to interpolate the path</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    drone.takenOff = <span class="hljs-literal">false</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> ls = LineStep(path);</pre></div></div>
             
         </li>
         
@@ -137,6 +136,21 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>if <code>takenOff</code> is <code>false</code> means the drone was landed</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    drone.takenOff = <span class="hljs-literal">false</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>the drone would only “fly” forward</p>
 
@@ -148,32 +162,19 @@
         </li>
         
         
-        <li id="section-7">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
-              </div>
-              <p>To increase precision, update every 0.1s</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> computeInterval = <span class="hljs-number">100</span>;</pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
-              <p>Core computation to simulate drone flying state</p>
+              <p>To increase precision, update every 0.1s</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> compute = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> computeInterval = <span class="hljs-number">100</span>;
+
+    <span class="hljs-keyword">var</span> _step;</pre></div></div>
             
         </li>
         
@@ -184,11 +185,11 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>a step is calculated based on computation cycle interval</p>
+              <p>Core computation to simulate drone flying state</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      _step = droneSim.fluc(drone.speed,-<span class="hljs-number">80</span>,<span class="hljs-number">80</span>)/(<span class="hljs-number">1000</span>/computeInterval);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> compute = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{</pre></div></div>
             
         </li>
         
@@ -199,13 +200,12 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
-              <p>a done can only be flying when it is in the sky</p>
+              <p>a step is calculated based on computation cycle interval
+random fluctuation added to _step(of the moment)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> ( drone.takenOff &amp;&amp; drone.isFlying ) ls.step(_step);
-
-      <span class="hljs-keyword">if</span> ( ls.currPoint[<span class="hljs-number">0</span>] === path[path.length-<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] )</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      _step = droneSim.fluc(drone.speed,-<span class="hljs-number">10</span>,<span class="hljs-number">10</span>)/(<span class="hljs-number">1000</span>/computeInterval);</pre></div></div>
             
         </li>
         
@@ -216,11 +216,15 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
-              <p>random fluctuation added to current location and rounded up to .2f</p>
+              <p>a done can only be flying when it is in the sky</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      ls.currPoint = [droneSim.fluc(ls.currPoint[<span class="hljs-number">0</span>],-<span class="hljs-number">10</span>,<span class="hljs-number">10</span>), droneSim.fluc(ls.currPoint[<span class="hljs-number">1</span>],-<span class="hljs-number">10</span>,<span class="hljs-number">10</span>)];</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> ( drone.takenOff &amp;&amp; drone.isFlying ) ls.step(_step);
+
+      <span class="hljs-keyword">if</span> ( ls.currPoint[<span class="hljs-number">0</span>] === path[path.length-<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] ) {
+        drone.isArrived = <span class="hljs-literal">true</span>;
+      }</pre></div></div>
             
         </li>
         
@@ -231,20 +235,12 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
-              <p>ls.currPoint = [Math.round(ls.currPoint[0]<em>100)/100, Math.round(ls.currPoint[1]</em>100)/100];</p>
+              <p>random fluctuation added to current location</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    }
-
-    drone.intervalHandler_compute = setInterval(compute, computeInterval);
-
-
-    drone.getStatusCode = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
-      <span class="hljs-keyword">if</span> ( drone.isArrived ) {
-        <span class="hljs-keyword">return</span> <span class="hljs-number">10</span>;
-      }
-      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( !drone.takenOff &amp;&amp; !drone.isFlying ) {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      ls.currPoint = [droneSim.fluc(ls.currPoint[<span class="hljs-number">0</span>],-<span class="hljs-number">10</span>,<span class="hljs-number">10</span>), droneSim.fluc(ls.currPoint[<span class="hljs-number">1</span>],-<span class="hljs-number">10</span>,<span class="hljs-number">10</span>)];
+    }</pre></div></div>
             
         </li>
         
@@ -254,6 +250,42 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>The Computing cycle interval</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    intervalHandler_compute = setInterval(compute, computeInterval);
+
+
+    drone.getStatusCode = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">if</span> ( drone.isArrived ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>statusCode 10: drone arrived at the planned destination</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-number">10</span>;
+      }
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( !drone.takenOff &amp;&amp; !drone.isFlying ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>statusCode 0: at stand at ground, waiting for taking off</p>
 
@@ -265,11 +297,11 @@
         </li>
         
         
-        <li id="section-14">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>statusCode 1: hovering in sky, waiting for instruction or new plan</p>
 
@@ -281,11 +313,11 @@
         </li>
         
         
-        <li id="section-15">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <p>statusCode 2: flying in sky, following instruction or preset plan</p>
 
@@ -297,11 +329,11 @@
         </li>
         
         
-        <li id="section-16">
+        <li id="section-18">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <p>statusCode 199: Exception, Hazard, SOS</p>
 
@@ -329,36 +361,22 @@
         </li>
         
         
-        <li id="section-17">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <p>get an object representation of the state of the drone</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>    drone.getCurrentState = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
-      <span class="hljs-keyword">return</span> { callSign: drone.callSign,</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-18">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
-              </div>
-              <p>location: [Math.round(ls.currPoint[0]<em>100)/100, Math.round(ls.currPoint[1]</em>100)/100],</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>               location: [ls.currPoint[<span class="hljs-number">0</span>], ls.currPoint[<span class="hljs-number">1</span>]],
+      <span class="hljs-keyword">return</span> { callSign: drone.callSign,
+               location: [ls.currPoint[<span class="hljs-number">0</span>], ls.currPoint[<span class="hljs-number">1</span>]],
                speed: drone.speed,
                prevPathPtInd: ls.prevCtrlPtInd,
-               distance: <span class="hljs-built_in">Math</span>.round(ls.currDist*<span class="hljs-number">100</span>)/<span class="hljs-number">100</span>,
+               distance: ls.currDist,
                statusCode: drone.getStatusCode()
              };
     }</pre></div></div>
@@ -366,11 +384,11 @@
         </li>
         
         
-        <li id="section-19">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>set the speed of drone</p>
 
@@ -387,6 +405,7 @@
         <span class="hljs-built_in">Array</span>.prototype.concat(path.slice(<span class="hljs-number">0</span>, pivotPointInd+<span class="hljs-number">1</span>), 
                                substitute, 
                                path.slice(pivotPointInd+<span class="hljs-number">1</span>, path.length-<span class="hljs-number">1</span>));
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'PATH'</span>,path);
       ls = LineStep(path);
       ls.step(dist);
     }
@@ -397,33 +416,20 @@
         </li>
         
         
-        <li id="section-20">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
-              </div>
-              <p>Generalized fluctuation between [m,n], AWARE unit in cm/s</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>  fluc: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(input, m, n)</span> </span>{</pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
-              <p>var d = Random.integer(m,n)/100;
-input += d;</p>
+              <p>Generalized fluctuation between [m,n]. AWARE, the unit of the speed is in cm/s</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">return</span> input;
+            <div class="content"><div class='highlight'><pre>  fluc: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(input, m, n)</span> </span>{
+    <span class="hljs-keyword">var</span> d = Random.integer(m,n)/<span class="hljs-number">100</span>;
+    input += d;
+    <span class="hljs-keyword">return</span> input;
   }
 }
 

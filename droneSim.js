@@ -7,20 +7,22 @@ var droneSim = {
   makeDrone: function(callSign, path, speed) {
     // `drone` object to export
     var drone = {};
+
     drone.callSign = callSign || "VX-seven oh two";
     path = path || 
             [
-              [-122.251911, 37.866316],
-              [-122.25500106811523, 37.86401247373357],
-              [-122.2723388671875, 37.86347038587407],
-              [-122.271137,37.854356],
-              [-122.28667259216309,37.852119505594274],
-              [-122.27993488311768,37.83103950459009],
+              [1, 2],
+              [123, 80],
+              [304, 130],
+              [596, 339],
+              [802, 489],
+              [1034, 829]
             ];
 
     // `speed` indicate the speed of the drone, represented in m/s
-    drone.speed = drone.speed || 0.0001;
+    drone.speed = drone.speed || 3;
 
+    // Utility to interpolate the path
     var ls = LineStep(path);
 
     // if `takenOff` is `false` means the drone was landed
@@ -32,24 +34,31 @@ var droneSim = {
     // To increase precision, update every 0.1s
     var computeInterval = 100;
 
+    var _step;
     // Core computation to simulate drone flying state
     var compute = function() {
+
       // a step is calculated based on computation cycle interval
-      _step = droneSim.fluc(drone.speed,-80,80)/(1000/computeInterval);
+      // random fluctuation added to _step(of the moment)
+      _step = droneSim.fluc(drone.speed,-10,10)/(1000/computeInterval);
       // a done can only be flying when it is in the sky
       if ( drone.takenOff && drone.isFlying ) ls.step(_step);
 
-      if ( ls.currPoint[0] === path[path.length-1][0] )
-      // random fluctuation added to current location and rounded up to .2f
+      if ( ls.currPoint[0] === path[path.length-1][0] ) {
+        drone.isArrived = true;
+      }
+
+      // random fluctuation added to current location
       ls.currPoint = [droneSim.fluc(ls.currPoint[0],-10,10), droneSim.fluc(ls.currPoint[1],-10,10)];
-      // ls.currPoint = [Math.round(ls.currPoint[0]*100)/100, Math.round(ls.currPoint[1]*100)/100];
     }
 
-    drone.intervalHandler_compute = setInterval(compute, computeInterval);
+    // The Computing cycle interval
+    intervalHandler_compute = setInterval(compute, computeInterval);
 
 
     drone.getStatusCode = function() {
       if ( drone.isArrived ) {
+        // statusCode 10: drone arrived at the planned destination
         return 10;
       }
       else if ( !drone.takenOff && !drone.isFlying ) {
@@ -87,12 +96,10 @@ var droneSim = {
     // get an object representation of the state of the drone
     drone.getCurrentState = function() {
       return { callSign: drone.callSign,
-
-               // location: [Math.round(ls.currPoint[0]*100)/100, Math.round(ls.currPoint[1]*100)/100],
                location: [ls.currPoint[0], ls.currPoint[1]],
                speed: drone.speed,
                prevPathPtInd: ls.prevCtrlPtInd,
-               distance: Math.round(ls.currDist*100)/100,
+               distance: ls.currDist,
                statusCode: drone.getStatusCode()
              };
     }
@@ -109,16 +116,17 @@ var droneSim = {
         Array.prototype.concat(path.slice(0, pivotPointInd+1), 
                                substitute, 
                                path.slice(pivotPointInd+1, path.length-1));
+      console.log('PATH',path);
       ls = LineStep(path);
       ls.step(dist);
     }
 
     return drone;
   },
-  // Generalized fluctuation between [m,n], AWARE unit in cm/s
+  // Generalized fluctuation between [m,n]. AWARE, the unit of the speed is in cm/s
   fluc: function(input, m, n) {
-    //var d = Random.integer(m,n)/100;
-    //input += d;
+    var d = Random.integer(m,n)/100;
+    input += d;
     return input;
   }
 }
