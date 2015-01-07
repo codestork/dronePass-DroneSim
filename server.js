@@ -33,20 +33,17 @@ io
     // 3. only `reportIn` event would emit `update` event, otherwise most of
     //    functions would emit `ack` event
 
-    // The endpoint to report in current state of the drone. Most used.
-    socket.on('reportIn', function(msg) {
-      // example -> { location: [ 2.05, 12.14 ], prevPathPtInd: 0, distance: 8.999 }
+
+    function() {
       var report = drone1.getCurrentState();
-      report.transcript = drone1.callSign + 
-                          " loc " + report.location[0] + ", " + report.location[1] + " . " +
-                          "PPI " + report.prevPathPtInd + " . " +
-                          "distance " + report.distance + 
-                          rndWords(' from base.', " from home.", "");
+      report.transcript = rndWords('this is ', '') + drone1.callSign +
+                          ' at stand, requesting';
 
-      socket.emit('update', report);
-    });
+      socket.emit('register', report );
 
-    socket.on('takeOff', function(msg) {
+    }
+
+    socket.on('TD_fileInFlightPlan', function(msg) {
       var report = drone1.getCurrentState();
 
       // if drone is flying then there is no need to take off
@@ -60,10 +57,41 @@ io
         drone1.fly();
       }
 
-      socket.emit('ack', report);
+      socket.emit('DT_fileInFlightPlan', report);
     });
 
-    socket.on('setSpeed', function(msg) {
+
+    // The endpoint to report in current state of the drone. Most used.
+    socket.on('TD_reportIn', function(msg) {
+      // example -> { location: [ 2.05, 12.14 ], prevPathPtInd: 0, distance: 8.999 }
+      var report = drone1.getCurrentState();
+      report.transcript = drone1.callSign + 
+                          " loc " + report.location[0] + ", " + report.location[1] + " . " +
+                          "PPI " + report.prevPathPtInd + " . " +
+                          "distance " + report.distance + 
+                          rndWords(' from base.', " from home.", "");
+
+      socket.emit('DT_update', report);
+    });
+
+    socket.on('TD_takeOff', function(msg) {
+      var report = drone1.getCurrentState();
+
+      // if drone is flying then there is no need to take off
+      if ( drone1.isFlying ) {
+        report.transcript = drone1.callSign + ' copy.' +
+                            ' we were flying, will keep going';
+      } else {
+        report.transcript = rndWords('this is ', '') + drone1.callSign + ' taking off,'+ 
+                            rndWords(' confirm.', ' good day.', ' good flight.');
+        drone1.takeOff();
+        drone1.fly();
+      }
+
+      socket.emit('DT_ack', report);
+    });
+
+    socket.on('TD_setSpeed', function(msg) {
       var report = drone1.getCurrentState();
 
       if ( msg.newSpeed === 0 ) {
@@ -83,10 +111,10 @@ io
         drone1.setSpeed(msg.newSpeed);
       }
 
-      socket.emit('ack', report);
+      socket.emit('DT_ack', report);
     });
 
-    socket.on('fly', function(msg) {
+    socket.on('TD_fly', function(msg) {
       var report = drone1.getCurrentState();
 
       // If it was already flying, then do nothing
@@ -109,11 +137,11 @@ io
         drone1.fly();
       }
 
-      socket.emit('ack', report);
+      socket.emit('DT_ack', report);
       
     });
 
-    socket.on('stop', function(msg) {
+    socket.on('TD_stop', function(msg) {
       var report = drone1.getCurrentState();
 
       // The drone was on the ground
@@ -138,10 +166,10 @@ io
       }
 
       drone1.stop();
-      socket.emit('ack', report);
+      socket.emit('DT_ack', report);
     });
 
-  socket.on('land', function(msg) {
+  socket.on('TD_land', function(msg) {
     var report = drone1.getCurrentState();
 
     if ( !drone1.takenOff ) {
@@ -157,15 +185,15 @@ io
 
     drone1.stop();
     drone1.land();
-    socket.emit('ack', report);
+    socket.emit('DT_ack', report);
   });
 
-    socket.on('changeRoute', function(msg) {
+    socket.on('TD_changeRoute', function(msg) {
       var report = drone1.getCurrentState();
       report.transcript = rndWords('this is ', '') + drone1.callSign +
                           rndWords(' reporting in,', ' copy,', ' pivoting,') +
                           rndWords(' new path received', ' following new path', ' incoming new plan accepted');
       drone1.changeRoute( msg.pivotPointInd, msg.substitutePath );
-      socket.emit('ack', report);
+      socket.emit('DT_ack', report);
     });
   });
