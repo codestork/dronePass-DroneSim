@@ -106,6 +106,10 @@ var droneSim = {
              };
     }
 
+    drone.getCurrentPath = function() {
+      return path;
+    }
+
     // set the speed of drone
     drone.setSpeed = function( newSpeed ) {
       drone.speed = newSpeed;
