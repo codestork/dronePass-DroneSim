@@ -19,7 +19,7 @@ var rndWords = function() {
   return arguments[ind];
 }
 
-var io = require('socket.io')(8080);
+var io = require('socket.io-client')('http://10.6.23.224:8080');
 
 io
   .on('connection', function (socket) {
