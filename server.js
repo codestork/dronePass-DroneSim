@@ -45,20 +45,31 @@ io
 
     socket.on('TD_fileInFlightPlan', function(msg) {
       var report = drone1.getCurrentState();
+      report.path = drone1.getCurrentPath();
 
-      // if drone is flying then there is no need to take off
-      if ( drone1.isFlying ) {
-        report.transcript = drone1.callSign + ' copy.' +
-                            ' we were flying, will keep going';
-      } else {
-        report.transcript = rndWords('this is ', '') + drone1.callSign + ' taking off,'+ 
-                            rndWords(' confirm.', ' good day.', ' good flight.');
-        drone1.takeOff();
-        drone1.fly();
-      }
+      // fixme
+      report.transcript = rndWords('this is ', '') + drone1.callSign + ' taking off,'+ 
+                          rndWords(' confirm.', ' good day.', ' good flight.');
 
       socket.emit('DT_fileInFlightPlan', report);
     });
+
+    socket.on('TD_flightPlanDecision', function(msg) {
+      // fixme
+      if ( msg.approved ) {
+        // transcript
+
+        // after some time..... ------ready take off
+        var report = drone1.getCurrentState();
+        // transcript
+        socket.emit('DT_readyTakeOff', report);
+      } else {
+        // transcript
+      }
+
+      socket.emit('DT_ack', report);
+
+    }
 
 
     // The endpoint to report in current state of the drone. Most used.
@@ -90,6 +101,11 @@ io
 
       socket.emit('DT_ack', report);
     });
+
+    socket.on('TD_notify', function(msg) {
+      var report = drone1.getCurrentState();
+      socket.emit('DT_ack', report);
+    }
 
     socket.on('TD_setSpeed', function(msg) {
       var report = drone1.getCurrentState();
@@ -194,6 +210,6 @@ io
                           rndWords(' reporting in,', ' copy,', ' pivoting,') +
                           rndWords(' new path received', ' following new path', ' incoming new plan accepted');
       drone1.changeRoute( msg.pivotPointInd, msg.substitutePath );
-      socket.emit('DT_ack', report);
+      socket.emit('DT_updateack', report);
     });
   });
