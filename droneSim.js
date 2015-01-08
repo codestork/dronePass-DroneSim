@@ -2,6 +2,9 @@
 var Random = require("random-js")();
 var LineStep = require('./utils/lineStep');
 
+var NanoTimer = require('nanotimer');
+var Timer = new NanoTimer();
+
 var droneSim = {
   // drone constructor
   makeDrone: function(callSign, path, speed, dtype) {
@@ -32,7 +35,7 @@ var droneSim = {
     drone.isFlying = false;
     drone.isArrived = false;
 
-    // To increase precision, update every 0.1s
+    // To increase precision, update every 100ms
     var computeInterval = 100;
 
     var _step;
@@ -54,7 +57,7 @@ var droneSim = {
     }
 
     // The Computing cycle interval
-    intervalHandler_compute = setInterval(compute, computeInterval);
+    intervalHandler_compute = Timer.setInterval(compute, '', computeInterval+'m');
 
 
     drone.getStatusCode = function() {
