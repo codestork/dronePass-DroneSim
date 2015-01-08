@@ -4,11 +4,12 @@ var LineStep = require('./utils/lineStep');
 
 var droneSim = {
   // drone constructor
-  makeDrone: function(callSign, path, speed) {
+  makeDrone: function(callSign, path, speed, dtype) {
     // `drone` object to export
     var drone = {};
 
     drone.callSign = callSign || "VX-seven oh two";
+    drone.dtype = dtype;
     path = path || 
             [
               [1, 2],
@@ -96,12 +97,17 @@ var droneSim = {
     // get an object representation of the state of the drone
     drone.getCurrentState = function() {
       return { callSign: drone.callSign,
+               droneType: drone.dtype,
                location: [ls.currPoint[0], ls.currPoint[1]],
                speed: drone.speed,
                prevPathPtInd: ls.prevCtrlPtInd,
                distance: ls.currDist,
                statusCode: drone.getStatusCode()
              };
+    }
+
+    drone.getCurrentPath = function() {
+      return path;
     }
 
     // set the speed of drone
