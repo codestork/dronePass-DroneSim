@@ -3,11 +3,8 @@ var droneSim = require('./droneSim');
 var fs = require('fs');
 var Random = require("random-js")();
 
-var drone1 = droneSim.makeDrone('Mike-Lima-November-9-1-7');
 
- setInterval(function(){
-    //console.log(drone1.getCurrentState());
-  }, 1000);
+var drone = droneSim.makeDrone('Mike-Lima-November-9-1-7');
 
 
 // We would like to make transcripts sounds more human and real,
@@ -23,7 +20,7 @@ var socket = require('socket.io-client')('http://10.6.23.224:8080');
     // Here defines the communication endpoints of a drone
     // `on` certain events, following by similar definition structure below:
     // 1. first build the report object
-    //   `var report = drone1.getCurrentState();`
+    //   `var report = drone.getCurrentState();`
     // 2. attach transcript to it, should be human readable messages
     //   `report.transcript = ...`
     // 3. only `reportIn` event would emit `update` event, otherwise most of
@@ -31,8 +28,8 @@ var socket = require('socket.io-client')('http://10.6.23.224:8080');
 
 
 var init = function() {
-  var report = drone1.getCurrentState();
-  report.transcript = rndWords('this is ', '') + drone1.callSign +
+  var report = drone.getCurrentState();
+  report.transcript = rndWords('this is ', '') + drone.callSign +
                       ' at stand, request to register';
 
   socket.emit('DT_register', report );
@@ -40,10 +37,10 @@ var init = function() {
 }();
 
 socket.on('TD_fileInFlightPlan', function(msg) {
-  var report = drone1.getCurrentState();
-  report.path = drone1.getCurrentPath();
+  var report = drone.getCurrentState();
+  report.path = drone.getCurrentPath();
 
-  report.transcript = rndWords('this is ', '') + drone1.callSign +
+  report.transcript = rndWords('this is ', '') + drone.callSign +
                       rndWords(' acknowledged,', ' copy,', ' understood,') +
                       rndWords(' filing in flight plan');
 
@@ -54,8 +51,8 @@ socket.on('TD_flightPlanDecision', function(msg) {
 
   if ( msg.approved ) {
     setTimeout(function(){
-      var report = drone1.getCurrentState();
-      report.transcript = drone1.callSign + rndWords(' to tower', '') +
+      var report = drone.getCurrentState();
+      report.transcript = drone.callSign + rndWords(' to tower', '') +
                         rndWords(' at stand,', ' copy,', ' understood,') +
                         " plan approved," +
                         ' waiting' + rndWords(' clearance','') + ' for' + 
@@ -65,8 +62,8 @@ socket.on('TD_flightPlanDecision', function(msg) {
     }, 1800);
     
   } else {
-    var report = drone1.getCurrentState();
-    report.transcript = rndWords('this is ', '') + drone1.callSign + rndWords(' to tower', '') +
+    var report = drone.getCurrentState();
+    report.transcript = rndWords('this is ', '') + drone.callSign + rndWords(' to tower', '') +
                       rndWords(' acknowledged,', ' copy,', ' understood,') +
                       rndWords(' waiting', ' standing for') +
                       rndWords(' new instruction', ' new plan');
@@ -80,8 +77,8 @@ socket.on('TD_flightPlanDecision', function(msg) {
 // The endpoint to report in current state of the drone. Most used.
 socket.on('TD_update', function(msg) {
   // example -> { location: [ 2.05, 12.14 ], prevPathPtInd: 0, distance: 8.999 }
-  var report = drone1.getCurrentState();
-  report.transcript = drone1.callSign + 
+  var report = drone.getCurrentState();
+  report.transcript = drone.callSign + 
                       " loc " + report.location[0] + ", " + report.location[1] + " . " +
                       "PPI " + report.prevPathPtInd + " . " +
                       "distance " + report.distance + 
@@ -91,71 +88,71 @@ socket.on('TD_update', function(msg) {
 });
 
 socket.on('TD_takeOff', function(msg) {
-  var report = drone1.getCurrentState();
+  var report = drone.getCurrentState();
 
   // if drone is flying then there is no need to take off
-  if ( drone1.isFlying ) {
-    report.transcript = drone1.callSign + ' copy.' +
+  if ( drone.isFlying ) {
+    report.transcript = drone.callSign + ' copy.' +
                         ' we were flying, will keep going';
   } else {
-    report.transcript = rndWords('this is ', '') + drone1.callSign + ' taking off,'+ 
+    report.transcript = rndWords('this is ', '') + drone.callSign + ' taking off,'+ 
                         rndWords(' confirm.', ' good day.', ' good flight.');
-    drone1.takeOff();
-    drone1.fly();
+    drone.takeOff();
+    drone.fly();
   }
 
   socket.emit('DT_ack', report);
 });
 
 socket.on('TD_notify', function(msg) {
-  var report = drone1.getCurrentState();
+  var report = drone.getCurrentState();
   socket.emit('DT_ack', report);
 });
 
 socket.on('TD_setSpeed', function(msg) {
-  var report = drone1.getCurrentState();
+  var report = drone.getCurrentState();
 
   if ( msg.newSpeed === 0 ) {
 
   }
 
   // If a drone is not flying, then it could not set a new speed
-  if ( !drone1.isFlying ) {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+  if ( !drone.isFlying ) {
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(', we were idle.') +
                         rndWords(' waiting for new instruction');
   } else {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(' acknowledged,', ' copy,', ' understood,') +
                         rndWords(' maintaining', ' changing to', ' in') +
                         " speed " + msg.newSpeed + ' .';
-    drone1.setSpeed(msg.newSpeed);
+    drone.setSpeed(msg.newSpeed);
   }
 
   socket.emit('DT_ack', report);
 });
 
 socket.on('TD_fly', function(msg) {
-  var report = drone1.getCurrentState();
+  var report = drone.getCurrentState();
 
   // If it was already flying, then do nothing
-  if ( drone1.isFlying ) {
-    report.transcript = drone1.callSign + ' copy.' +
+  if ( drone.isFlying ) {
+    report.transcript = drone.callSign + ' copy.' +
                                 ' we were flying, will keep going';
   } 
 
   // It it was on the ground, then it is waiting for clearance for taking off
-  else if ( !drone1.isFlying && !drone1.takenOff ) {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+  else if ( !drone.isFlying && !drone.takenOff ) {
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(' at ground ', '') +
                         rndWords(', need clearance for', ', waiting for') +
                         " taking off";
   }
-  else if ( !drone1.isFlying && drone1.takenOff ) {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+  else if ( !drone.isFlying && drone.takenOff ) {
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(' acknowledged,', ' copy,', ' understood,') +
                         rndWords(' fly ahead', ' head straight', ' going');
-    drone1.fly();
+    drone.fly();
   }
 
   socket.emit('DT_ack', report);
@@ -163,57 +160,57 @@ socket.on('TD_fly', function(msg) {
 });
 
 socket.on('TD_stop', function(msg) {
-  var report = drone1.getCurrentState();
+  var report = drone.getCurrentState();
 
   // The drone was on the ground
-  if ( !drone1.isFlying && !drone1.takenOff ) {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+  if ( !drone.isFlying && !drone.takenOff ) {
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(' at stand,', ' copy,') +
                         rndWords(' we were holding', ' keeping idle') +
                         " at ground";
   }
 
   // The drone was already stopping(hovering) in the sky
-  else if ( !drone1.isFlying && drone1.takenOff ) {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+  else if ( !drone.isFlying && drone.takenOff ) {
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(' at stand,', ' copy,') +
                         rndWords(' we were stopping', ' keeping idle') +
                         " in sky";
   } else {
-    report.transcript = rndWords('this is ', '') + drone1.callSign +
+    report.transcript = rndWords('this is ', '') + drone.callSign +
                         rndWords(' at stand,', ' copy,', ' understood,') +
                         rndWords(' stopping now', ' pausing around', ' idle now') +
                         " in sky";
   }
 
-  drone1.stop();
+  drone.stop();
   socket.emit('DT_ack', report);
 });
 
 socket.on('TD_land', function(msg) {
-var report = drone1.getCurrentState();
+var report = drone.getCurrentState();
 
-if ( !drone1.takenOff ) {
-  report.transcript = rndWords('this is ', '') + drone1.callSign +
+if ( !drone.takenOff ) {
+  report.transcript = rndWords('this is ', '') + drone.callSign +
                       rndWords(' at stand,', ' copy,') +
                       rndWords(' we were holding', ' keeping idle') +
                       " at ground";
 } else {
-  report.transcript = rndWords('this is ', '') + drone1.callSign +
+  report.transcript = rndWords('this is ', '') + drone.callSign +
                       rndWords(' at stand,', ' copy,', ' understood,') +
                       rndWords(' landing now', ' going down' );
 }
 
-drone1.stop();
-drone1.land();
+drone.stop();
+drone.land();
 socket.emit('DT_ack', report);
 });
 
 socket.on('TD_changeRoute', function(msg) {
-  var report = drone1.getCurrentState();
-  report.transcript = rndWords('this is ', '') + drone1.callSign +
+  var report = drone.getCurrentState();
+  report.transcript = rndWords('this is ', '') + drone.callSign +
                       rndWords(' reporting in,', ' copy,', ' pivoting,') +
                       rndWords(' new path received', ' following new path', ' incoming new plan accepted');
-  drone1.changeRoute( msg.pivotPointInd, msg.substitutePath );
+  drone.changeRoute( msg.pivotPointInd, msg.substitutePath );
   socket.emit('DT_updateack', report);
 });
