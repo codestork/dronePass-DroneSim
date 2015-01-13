@@ -4,7 +4,7 @@ var fs = require('fs');
 var Random = require("random-js")();
 
 
-var drone = droneSim.makeDrone('Mike-Lima-November-9-1-7');
+var drone = droneSim.makeDrone('Tango-Alfa-Victor-2-4-7');
 
 
 // We would like to make transcripts sounds more human and real,
@@ -15,7 +15,7 @@ var rndWords = function() {
   return arguments[ind];
 }
 
-var socket = require('socket.io-client')('http://10.6.23.224:8080');
+var socket = require('socket.io-client')('http://tower.dronepass.org:8080');
 
     // Here defines the communication endpoints of a drone
     // `on` certain events, following by similar definition structure below:
