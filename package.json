@@ -5,6 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "docco-husky": "^0.3.3",
+    "moment": "^2.9.0",
     "nanotimer": "^0.3.6",
     "random-js": "^1.0.4",
     "socket.io": "^1.2.1",
