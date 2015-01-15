@@ -2,14 +2,23 @@
 var Random = require("random-js")();
 var LineStep = require('./utils/lineStep');
 
+
 var NanoTimer = require('nanotimer');
 var Timer = new NanoTimer();
+
+var moment = require('moment');
+
 
 var droneSim = {
   // drone constructor
   makeDrone: function(callSign, path, speed, dtype) {
     // `drone` object to export
     var drone = {};
+    var now = moment();
+    drone.flightStart = now.subtract(5, 'minutes').format('YYYY-MM-DD hh:mm:ss');
+    drone.flightEnd = now.add(30, 'minutes').format('YYYY-MM-DD hh:mm:ss');
+
+    console.log(drone);
 
     drone.callSign = callSign || "VX-seven oh two";
     drone.dtype = dtype;
@@ -103,6 +112,8 @@ var droneSim = {
     drone.getCurrentState = function() {
       return { callSign: drone.callSign,
                droneType: drone.dtype,
+               flightStart: drone.flightStart,
+               flightEnd: drone.flightEnd,
                location: [ls.currPoint[0], ls.currPoint[1]],
                speed: drone.speed,
                prevPathPtInd: ls.prevCtrlPtInd,
@@ -125,9 +136,8 @@ var droneSim = {
       var i;
       var dist = ls.currDist;
       path = 
-        Array.prototype.concat(path.slice(0, pivotPointInd+1), 
-                               substitute, 
-                               path.slice(pivotPointInd+1, path.length-1));
+        Array.prototype.concat(path.slice(0, pivotPointInd), 
+                               substitute);
       console.log('PATH',path);
       ls = LineStep(path);
       ls.step(dist);

@@ -16,6 +16,7 @@ var rndWords = function() {
 }
 
 var socket = require('socket.io-client')('http://tower.dronepass.org:8080');
+// var socket = require('socket.io-client')('http://10.6.23.224:8080');
 
     // Here defines the communication endpoints of a drone
     // `on` certain events, following by similar definition structure below:
@@ -208,9 +209,11 @@ socket.emit('DT_ack', report);
 
 socket.on('TD_changeRoute', function(msg) {
   var report = drone.getCurrentState();
+  if ( msg.callSign != drone.callSign ) return ;
+
   report.transcript = rndWords('this is ', '') + drone.callSign +
                       rndWords(' reporting in,', ' copy,', ' pivoting,') +
                       rndWords(' new path received', ' following new path', ' incoming new plan accepted');
-  drone.changeRoute( msg.pivotPointInd, msg.substitutePath );
-  socket.emit('DT_updateack', report);
+  drone.changeRoute( msg.timeBufPrevPtInd, msg.path );
+  socket.emit('DT_updateAck', report);
 });
