@@ -217,3 +217,19 @@ socket.on('TD_changeRoute', function(msg) {
   drone.changeRoute( msg.timeBufPrevPtInd, msg.path );
   socket.emit('DT_updateAck', report);
 });
+
+
+// ------ DEMO Interface ------
+var io = require('socket.io')(8001);
+
+io.on('connection', function(socket){
+  socket.on('_path', function(msg) {
+    var _path = drone.getCurrentPath();
+    socket.emit('_pathUpdate', _path );
+  });
+
+  socket.on('_location', function(msg) {
+    var loc = drone.getCurrentState().location;
+    socket.emit('_locationUpdate', loc );
+  });
+}
