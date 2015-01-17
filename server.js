@@ -232,4 +232,4 @@ io.on('connection', function(socket){
     var loc = drone.getCurrentState().location;
     socket.emit('_locationUpdate', loc );
   });
-}
+});
