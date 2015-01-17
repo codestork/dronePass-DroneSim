@@ -224,8 +224,8 @@ var io = require('socket.io')(8001);
 
 io.on('connection', function(socket){
   socket.on('_path', function(msg) {
-    var loc = drone.getCurrentPath();
-    socket.emit('_pathUpdate', loc );
+    var _path = drone.getCurrentPath();
+    socket.emit('_pathUpdate', _path );
   });
 
   socket.on('_location', function(msg) {
